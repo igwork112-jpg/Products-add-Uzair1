@@ -19,6 +19,7 @@ class ScrapeJob(db.Model):
     source_url = db.Column(db.String(500), nullable=False)
     status = db.Column(db.String(50), default='pending')  # pending, running, completed, failed
     apify_run_id = db.Column(db.String(100))
+    crawl_id = db.Column(db.String(100))  # Firecrawl crawl ID for cancellation
     total_products = db.Column(db.Integer, default=0)
     products_processed = db.Column(db.Integer, default=0)
     products_pushed = db.Column(db.Integer, default=0)

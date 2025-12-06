@@ -459,6 +459,44 @@ def update_product(product_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/scrape-job/<int:job_id>/cancel', methods=['POST'])
+@login_required
+def cancel_scrape_job(job_id):
+    """Cancel an ongoing scrape job and its Firecrawl crawl"""
+    try:
+        job = ScrapeJob.query.get(job_id)
+        if not job:
+            return jsonify({'error': 'Job not found'}), 404
+        
+        # Only allow cancelling jobs that are in progress
+        if job.status not in ['pending', 'running']:
+            return jsonify({'error': f'Cannot cancel job with status: {job.status}'}), 400
+        
+        # Cancel the Firecrawl crawl if crawl_id exists
+        if job.crawl_id:
+            logger.info(f"🛑 Cancelling Firecrawl crawl: {job.crawl_id}")
+            cancelled = firecrawl_service.cancel_crawl(job.crawl_id)
+            if cancelled:
+                logger.info(f"✅ Firecrawl crawl {job.crawl_id} cancelled")
+            else:
+                logger.warning(f"⚠️ Failed to cancel Firecrawl crawl {job.crawl_id}")
+        
+        # Update job status
+        job.status = 'cancelled'
+        job.completed_at = datetime.utcnow()
+        db.session.commit()
+        
+        logger.info(f"✅ Scrape job {job_id} cancelled")
+        return jsonify({
+            'message': 'Job cancelled successfully',
+            'job_id': job_id
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error cancelling job {job_id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     """Delete a product"""
@@ -2381,12 +2419,37 @@ def run_firecrawl_workflow(task_id, url, max_pages):
             return
 
         logger.info(f"[{task_id}] ✅ Firecrawl started - Crawl ID: {crawl_id}")
+        
+        # Save crawl_id to the job for cancellation support
+        job = ScrapeJob.query.filter_by(task_id=task_id).first()
+        if job:
+            job.crawl_id = crawl_id
+            db.session.commit()
+            logger.info(f"[{task_id}] 💾 Saved crawl_id to job")
+        
         logger.info(f"[{task_id}] ⏱️  Waiting for Firecrawl to complete...")
 
+        # Define callback to check if job was cancelled
+        def check_if_cancelled():
+            """Check if the job was cancelled by user"""
+            job = ScrapeJob.query.filter_by(task_id=task_id).first()
+            return job and job.status == 'cancelled'
+
         # Wait for Firecrawl to complete (max 10 minutes timeout)
-        success = firecrawl_service.wait_for_completion(crawl_id, timeout=600, poll_interval=10)
+        success = firecrawl_service.wait_for_completion(
+            crawl_id, 
+            timeout=600, 
+            poll_interval=10,
+            check_cancelled_callback=check_if_cancelled
+        )
 
         if not success:
+            # Check if it was cancelled by user
+            job = ScrapeJob.query.filter_by(task_id=task_id).first()
+            if job and job.status == 'cancelled':
+                logger.info(f"[{task_id}] ✅ Job cancelled by user")
+                return
+            
             logger.error(f"[{task_id}] Firecrawl failed or timed out")
             db_service.update_scrape_job(
                 task_id,

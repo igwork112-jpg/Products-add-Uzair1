@@ -66,9 +66,9 @@ class FirecrawlService:
                         'formats': ['markdown', 'html']
                     }
                 }
-                
+
                 logger.info(f"🔍 Using SDK with params: {params}")
-                
+
                 # Try different method names based on SDK version
                 try:
                     # v4+ uses async_crawl_url or start_crawl
@@ -120,7 +120,7 @@ class FirecrawlService:
             
             # Fallback to raw requests (or if SDK failed)
             url = f"{self.base_url}/crawl"
-            
+
             payload = {
                 "url": website_url,
                 "limit": max_pages,
@@ -197,7 +197,7 @@ class FirecrawlService:
             logger.error(f"❌ Error checking Firecrawl status: {str(e)}")
             return None
 
-    def wait_for_completion(self, crawl_id: str, timeout: int = 600, poll_interval: int = 10) -> bool:
+    def wait_for_completion(self, crawl_id: str, timeout: int = 600, poll_interval: int = 10, check_cancelled_callback=None) -> bool:
         """
         Wait for Firecrawl job to complete
         
@@ -205,6 +205,7 @@ class FirecrawlService:
             crawl_id: The crawl job ID
             timeout: Maximum time to wait in seconds
             poll_interval: Time between status checks in seconds
+            check_cancelled_callback: Optional callback function that returns True if job was cancelled
             
         Returns:
             True if succeeded, False otherwise
@@ -212,6 +213,13 @@ class FirecrawlService:
         start_time = time.time()
         
         while time.time() - start_time < timeout:
+            # Check if job was cancelled by user
+            if check_cancelled_callback and check_cancelled_callback():
+                logger.info(f"🛑 Firecrawl {crawl_id} cancelled by user")
+                # Cancel the Firecrawl crawl
+                self.cancel_crawl(crawl_id)
+                return False
+            
             status_data = self.check_crawl_status(crawl_id)
             
             if not status_data:
@@ -318,6 +326,44 @@ class FirecrawlService:
                 normalized.append(page_dict)
         
         return normalized
+
+    def cancel_crawl(self, crawl_id: str) -> bool:
+        """
+        Cancel an ongoing Firecrawl job
+        
+        Args:
+            crawl_id: The crawl job ID to cancel
+            
+        Returns:
+            True if cancelled successfully, False otherwise
+        """
+        try:
+            logger.info(f"🛑 Cancelling Firecrawl job: {crawl_id}")
+            
+            if self.use_sdk and hasattr(self.app, 'cancel_crawl'):
+                # Use SDK if available
+                try:
+                    result = self.app.cancel_crawl(crawl_id)
+                    logger.info(f"✅ Firecrawl job {crawl_id} cancelled via SDK")
+                    return True
+                except Exception as sdk_error:
+                    logger.warning(f"⚠️ SDK cancel failed: {sdk_error}, using raw requests")
+                    # Fall through to raw requests
+            
+            # Raw requests - DELETE endpoint
+            url = f"{self.base_url}/crawl/{crawl_id}"
+            response = requests.delete(url, headers=self.headers, timeout=30)
+            
+            if response.status_code in [200, 204]:
+                logger.info(f"✅ Firecrawl job {crawl_id} cancelled successfully")
+                return True
+            else:
+                logger.error(f"❌ Failed to cancel crawl {crawl_id}: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Error cancelling Firecrawl job {crawl_id}: {str(e)}")
+            return False
 
     def crawl_and_wait(self, website_url: str, max_pages: int = 50, timeout: int = 600) -> List[Dict]:
         """

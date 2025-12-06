@@ -166,6 +166,19 @@
             data.jobs.forEach(job => {
                 const row = tbody.insertRow();
 
+                // Show cancel button only for pending/running jobs
+                const showCancelButton = (job.status === 'pending' || job.status === 'running');
+                const cancelButtonHtml = showCancelButton ? `
+                    <button class="btn btn-danger" onclick="cancelScrapeJob(${job.id})" style="padding: 6px 12px; font-size: 13px; margin-right: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        Cancel
+                    </button>
+                ` : '';
+
                 row.innerHTML = `
                     <td><code style="font-size: 12px; background: var(--soft-white); padding: 2px 6px; border-radius: 4px;">${job.task_id}</code></td>
                     <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${job.source_url}</td>
@@ -174,6 +187,7 @@
                     <td><strong>${job.products_pushed || 0}</strong></td>
                     <td style="color: var(--warm-gray); font-size: 13px;">${formatDate(job.created_at)}</td>
                     <td>
+                        ${cancelButtonHtml}
                         <button class="btn btn-secondary" onclick="viewProducts(${job.id})" style="padding: 6px 12px; font-size: 13px; margin-right: 6px;">
                             View Products
                         </button>
@@ -338,6 +352,31 @@
 
     function viewAIJob(aiJobId) {
         window.location.href = `/ai-job/${aiJobId}`;
+    }
+
+    async function cancelScrapeJob(jobId) {
+        if (!confirm('⚠️ Cancel this scrape job?\n\nThis will stop the Firecrawl crawl and mark the job as cancelled. This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/scrape-job/${jobId}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('✅ Scrape job cancelled successfully', 'success');
+                loadJobs(); // Reload the jobs table
+                loadStats(); // Reload stats
+            } else {
+                showAlert('❌ Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            showAlert('❌ Error cancelling job: ' + error.message, 'error');
+        }
     }
 
     async function resumeAIJob(aiJobId) {

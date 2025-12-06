@@ -376,25 +376,36 @@ class GeminiService:
 
             # Use completely different prompt for product_in_use (white background)
             if variation == "product_in_use":
-                edit_prompt = f"""Professional studio product photography on pure white background.
+                edit_prompt = f"""Professional studio product photography with SEAMLESS pure white background.
 
 PRODUCT TO RECREATE:
 {size_context}
 Product Name: {product_title}
 
-🎯 CRITICAL: WHITE BACKGROUND REQUIREMENT
-- Background must be PURE WHITE (#FFFFFF)
-- Absolutely NO shadows on the background
-- NO gradients, NO gray tones
-- Clean, seamless white backdrop like professional studio photography
-- Think Amazon product listing or Apple product photography style
+🎯 CRITICAL: SEAMLESS WHITE BACKGROUND REQUIREMENT
+- Background must be COMPLETELY UNIFORM PURE WHITE (#FFFFFF or RGB 255,255,255)
+- Absolutely NO circular halos, vignettes, or white circles around the product
+- NO shadows, gradients, gray tones, or darker edges anywhere on the background
+- NO visible floor, surface, or ground line - product appears to float
+- Background must be ONE SOLID COLOR - pure white from edge to edge
+- Clean, seamless white backdrop like professional Amazon/Apple product photography
+- The ENTIRE background must be the EXACT SAME white - no variations
+
+⚠️ CRITICAL: AVOID THESE COMMON ARTIFACTS
+- NO white circular glow or halo effect around the product
+- NO vignetting (darker edges fading to white center)
+- NO drop shadows or contact shadows on the white background
+- NO visible surface beneath the product
+- NO gradient transitions anywhere in the background
+- The white background should be absolutely uniform with no variations
 
 📸 STUDIO SETUP:
-- Professional photography studio with white cyclorama backdrop
-- Soft box lighting from multiple angles to eliminate shadows
-- Product floating on pure white, no visible surface
-- High-key lighting setup for clean white background
-- No floor shadows, no background texture
+- Professional infinity cove photography studio with seamless white cyclorama
+- Uniform high-key lighting completely eliminating all background shadows
+- Product isolated on pure white with perfect edge blending
+- NO visible floor, NO horizon line, NO surface texture
+- Background completely blown out to pure white (#FFFFFF)
+- Advanced photo editing to ensure 100% uniform white background
 
 🔒 PRODUCT RECREATION (EXACT MATCH):
 Based on the reference images provided, recreate this product with PERFECT ACCURACY:
@@ -404,29 +415,34 @@ Based on the reference images provided, recreate this product with PERFECT ACCUR
 - Correct proportions and dimensions
 - Complete product setup (if it holds items, show it loaded/functional)
 - Remove ALL text, logos, branding, labels
+- Product edges should be clean and well-defined against white
 
 🚫 WHAT NOT TO INCLUDE:
 - NO people, hands, or body parts
-- NO environment, floor, or surfaces
-- NO shadows on the white background
+- NO environment, floor, surfaces, or ground
+- NO shadows, halos, or any artifacts on the white background
+- NO circular white glow around the product
 - NO props or additional objects
 - NO text or branding on product
+- NO visible floor line or horizon
 
 📸 COMPOSITION & ANGLE:
-- Product centered in frame
+- Product perfectly centered in frame
 - Fills 70-80% of the image
 - Slight 3/4 angle view to show depth and dimension
 - All key features clearly visible
 - Professional e-commerce photography composition
+- Product appears to float on pure white
 
 💡 LIGHTING:
 - Bright, even lighting across entire product
-- Soft shadows on product itself for dimension (but NOT on background)
-- High-key lighting for pure white background
-- Professional studio quality
+- Soft shadows ON THE PRODUCT ITSELF ONLY for dimension (showing product form)
+- ZERO shadows on the background - background must be pure white
+- High-key lighting that completely blows out background to white
+- Professional studio quality with perfect white balance
 
 🎯 FINAL RESULT:
-A pristine, professional product photograph on PURE WHITE BACKGROUND - exactly like high-end e-commerce product listings (Amazon, Apple, etc.). The product should appear to float on white with perfect lighting and zero background shadows."""
+A pristine, professional product photograph with COMPLETELY SEAMLESS PURE WHITE BACKGROUND - exactly like high-end e-commerce product listings (Amazon, Apple, etc.). The product should appear to cleanly float on a uniform white background with ZERO artifacts, halos, shadows, or variations. The background must be ONE SOLID WHITE COLOR from edge to edge with no circular halos or vignettes."""
             else:
                 # For other variations (installation), use the original lifestyle/application prompt
                 edit_prompt = f"""You are a professional lifestyle product photographer. Transform this product image into a compelling, real-world application photograph showing the product in use.
@@ -937,25 +953,35 @@ Return ONLY the ultra-detailed image generation prompt, no additional text."""
         """
         instructions = {
             "product_in_use": """
-📸 IMAGE 1: PRODUCT IN USE (CLEAN, PROFESSIONAL, NO WORKERS)
+📸 IMAGE 1: SEAMLESS WHITE BACKGROUND PRODUCT SHOT
 
 🎯 OBJECTIVE:
-Create a clean, professional product image showing the product in its intended use ALREADY INSTALLED and functioning as designed.
+Create a pristine, professional product photograph with a COMPLETELY SEAMLESS pure white background - exactly like high-end e-commerce listings (Amazon, Apple, etc.).
 
-🎯 CRITICAL: WHITE BACKGROUND REQUIREMENT
-- Background must be PURE WHITE (#FFFFFF)
-- Absolutely NO shadows on the background
-- NO gradients, NO gray tones
-- Clean, seamless white backdrop like professional studio photography
-- Think Amazon product listing or Apple product photography style
+🎯 CRITICAL: SEAMLESS WHITE BACKGROUND REQUIREMENT
+- Background must be COMPLETELY UNIFORM PURE WHITE (#FFFFFF or RGB 255,255,255)
+- Absolutely NO circular halos, vignettes, or white circles around the product
+- NO shadows, gradients, gray tones, or darker edges anywhere on the background
+- NO visible floor, surface, or ground line - product appears to float
+- Background must be ONE SOLID COLOR - pure white from edge to edge
+- The ENTIRE background must be the EXACT SAME white - no variations
 
-⚠️ CRITICAL: NO WORKERS, NO HANDS, NO TOOLS visible in this image.
+⚠️ CRITICAL: AVOID THESE COMMON ARTIFACTS
+- NO white circular glow or halo effect around the product
+- NO vignetting (darker edges fading to white center)
+- NO drop shadows or contact shadows on the white background
+- NO visible surface beneath the product
+- NO gradient transitions anywhere in the background
+- The white background should be absolutely uniform with no variations
+
+⚠️ CRITICAL: NO WORKERS, NO HANDS, NO TOOLS, NO PEOPLE visible in this image.
 
 🔒 PRESERVE EXACT PRODUCT APPEARANCE:
 - The product itself must remain IDENTICAL to the original reference images
 - Do NOT change the product's color, shape, size, design, or any physical features
-- ONLY change the environment/background/context around the product
+- ONLY change the background to pure white
 - The product is perfect as-is - DO NOT redesign or modify it
+- Product edges should be clean and well-defined against white
 
 📸 CRITICAL: SHOW COMPLETE PRODUCT AS SEEN IN REFERENCE IMAGES:
 - Study ALL reference images to see how the product is MEANT to be shown
@@ -965,35 +991,29 @@ Create a clean, professional product image showing the product in its intended u
 - DO NOT show just the base/frame if reference images show complete assembly
 - The reference images are your guide - replicate the COMPLETE setup you see
 
-🔧 PRODUCT PRESENTATION:
-- Show the product ALREADY INSTALLED and in use
-- Product functioning as designed in its final, installed state
-- COMPLETE SETUP as shown in reference images (not just base/empty structure)
-- Clean, professional presentation
-- Product should look like it's being used, but WITHOUT people visibly interacting with it
-- The SAME EXACT COMPLETE product from the reference images, just in a real-world setting
-
-🌍 ENVIRONMENT & CONTEXT:
-- Realistic environment relevant to the product
-- Use realistic lighting and correct scale
-- Clean, well-maintained environment
-- Include ONLY objects necessary to show the product's purpose
-  Example: A wheel stop with a car wheel touching it (no person visible)
-  Example: Safety barrier installed on a road edge (no workers)
-  Example: Bollard installed in parking lot with cars nearby (no people)
-
 📸 COMPOSITION:
-- Professional, catalog-quality photography
-- Straight-on or slight angle to show product clearly
-- Natural, appropriate lighting for the environment
-- Sharp focus on product
-- Clean, uncluttered background
+- Product perfectly centered in frame
+- Fills 70-80% of the image
+- Slight 3/4 angle view to show depth and dimension
+- All key features clearly visible
+- Professional e-commerce photography composition
+- Product appears to cleanly float on pure white
 
-🚫 WHAT NOT TO SHOW:
-- NO workers or people
-- NO hands touching the product
-- NO tools or installation equipment
-- NO installation process
+💡 LIGHTING:
+- Bright, even lighting across entire product
+- Soft shadows ON THE PRODUCT ITSELF ONLY for dimension (showing product form)
+- ZERO shadows on the background - background must be pure white
+- High-key lighting that completely blows out background to white
+- Professional studio quality with perfect white balance
+
+🚫 WHAT NOT TO INCLUDE:
+- NO people, hands, or body parts
+- NO environment, floor, surfaces, or ground
+- NO shadows, halos, or any artifacts on the white background
+- NO circular white glow around the product
+- NO props or additional objects
+- NO text or branding on product
+- NO visible floor line or horizon
 
 🚫 BRANDING:
 - NO brand names, logos, or text on the product
@@ -1001,7 +1021,7 @@ Create a clean, professional product image showing the product in its intended u
 - Clean surfaces only
 
 🎯 FINAL RESULT:
-A professional, clean image showing the product already installed and serving its purpose, photographed as if for a high-quality product catalog.
+A pristine, professional product photograph with COMPLETELY SEAMLESS PURE WHITE BACKGROUND. The product should appear to cleanly float on a uniform white background with ZERO artifacts, halos, shadows, or variations. The background must be ONE SOLID WHITE COLOR from edge to edge with no circular halos or vignettes.
 """,
             "installation": """
 📸 IMAGE 2: REAL-LIFE APPLICATION (PRODUCT IN ACTUAL USE)
